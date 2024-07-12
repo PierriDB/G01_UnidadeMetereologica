@@ -1,6 +1,6 @@
 //https://www.youtube.com/watch?v=dwewIsXnW_4
 
-/******************* Libraries *******************/
+/******************* Libraries ******************/
 //BME280
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
