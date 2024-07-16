@@ -17,10 +17,14 @@
 // and any additional configuration needed for WiFi, cellular,
 // or ethernet clients.
 #include "config.h"
+#include <Wire.h> // Biblioteca nativa do core Arduino
+
 
 /************************ Example Starts Here *******************************/
 
 // digital pin 5
+// Variáveis globais
+const int myAddress = 0x10; // armazena o endereço deste dispositivo (slave)
 #define LED_PIN 2
 int t;
 float tempValue = 25.5;
@@ -41,7 +45,7 @@ AdafruitIO_Feed *Vento_direcao = io.feed("Vento_direcao");
 void setup() {
   
   pinMode(LED_PIN, OUTPUT);  
-  Serial.begin(9600);
+  Serial.begin(115200);
   // wait for serial monitor to open
   while(! Serial);
 
@@ -61,6 +65,13 @@ void setup() {
   Serial.println();
   Serial.println(io.statusText());
   digital->get();
+
+  //Conexão Serial com Arduin
+  //Serial.begin(115200);  // Configura a taxa de transferência em bits por segundo (baud rate) para transmissão serial.
+  Serial.println();
+  Wire.begin(myAddress); // inicia o dispositivo com o endereço definido anteriormente
+  Wire.onReceive(receiveEvent); //registra o evento de recebimento de mensagem
+  Serial.println("Software do ESP32");
 
 }
 
@@ -83,12 +94,25 @@ void loop() {
 // this function is called whenever an 'digital' feed message
 // is received from Adafruit IO. it was attached to the 'digital' feed in the setup() function above.
 void handleMessage(AdafruitIO_Data *data) {
-
   Serial.print("received <- ");
   if(data->toPinLevel() == HIGH)
     Serial.println("HIGH");
   else
     Serial.println("LOW");
-
   digitalWrite(LED_PIN, data->toPinLevel());
+}
+
+
+void receiveEvent(int howMany) {
+  String message = readString();
+  Serial.print(message); // imprime a mensagem recebida
+}
+
+String readString() {
+  String retorno;  
+  while (Wire.available()) { // Enquanto houver bytes disponíveis para leitura, ...
+    char c = Wire.read(); // recebe o byte como caractere
+    retorno += c;
+  }
+  return retorno;
 }
