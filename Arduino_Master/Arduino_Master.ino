@@ -3,6 +3,7 @@
 /******************* Libraries ******************/
 //BME280
 #include <Wire.h>
+#include <A2a.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include "AS5600.h"
@@ -13,11 +14,12 @@
 #define hall_pluv 2 // PLUVIOMETRO
 #define hall_anem 3 // VELOCIDADE VENTO
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define address 0x20
+#define endereco 0x20
 //
 
 //AS5600
 AS5600 as5600;   //  use default Wire
+A2a ESP32;
 Adafruit_BME280 bme;
 
 /******************* Variables *******************/
@@ -43,12 +45,12 @@ int old_value_pluv = 0;
 int count_pluv = 0;
 const float vol_click = 0.25;
 //String wind_dir_text[1] = "arduino";
-
 String wind_dir_text= "Arduino Factory"; 
 
 /******************************* Setup ******************************/
 void setup() {
   Wire.begin(); // inicia a comunicação I2C
+  ESP32.begin(endereco);
 
   //resetmicros();
   Serial.begin(9600);
@@ -65,8 +67,10 @@ void setup() {
   Wire.begin();
   as5600.begin(4);  //  set direction pin.
   as5600.setDirection(AS5600_CLOCK_WISE);  //  default, just be explicit.
- 
 
+  //COMUNICAÇÃO I2C COM ESP32
+  ESP32.onReceive(receberDados);
+  ESP32.onRequest(enviarDados);
 }
 
 
@@ -111,7 +115,6 @@ void loop() {
    Serial.print(count_pluv * vol_click); 
    Serial.println(" mm");
  }
-
 
   //Efeito Hall Anemometer
   windvelocity();
@@ -171,6 +174,10 @@ void loop() {
   x++; // incremento da variável
   delay(500); // pausa de 500 milissegundos
 
+
+  //WRITE VARIABLES WITH I2C
+  ESP32.varWireWrite(0,2222);
+  ESP32.varWireWrite(1,3333);
 }
 /*******************************************************************/
 /**************************** Functions ****************************/
@@ -220,5 +227,13 @@ if (!bme.begin(0x76)) {
   Serial.print(" ID of 0x60 represents a BME 280.\n");
   while (1);
   }
+}
+
+void receberDados(){
+  ESP32.receiveData(); 
+}
+
+void enviarDados(){
+  ESP32.sendData();
 }
 

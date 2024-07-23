@@ -5,8 +5,10 @@
 
 /******************************* WIFI **************************************/
 
-#define WIFI_SSID "APTO22_5G-EXT"
-#define WIFI_PASS "999953781"
+//#define WIFI_SSID "APTO22_5G-EXT"
+//#define WIFI_PASS "999953781"
+#define WIFI_SSID "DELLABRUNA"
+#define WIFI_PASS "dellabruna2022"
 
 #include "AdafruitIO_WiFi.h"
 

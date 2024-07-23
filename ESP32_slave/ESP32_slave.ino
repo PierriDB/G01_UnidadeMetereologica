@@ -18,16 +18,19 @@
 // or ethernet clients.
 #include "config.h"
 #include <Wire.h> // Biblioteca nativa do core Arduino
-
+#include <A2a.h>
 
 /************************ Example Starts Here *******************************/
 
 // digital pin 5
 // Variáveis globais
-const int myAddress = 0x10; // armazena o endereço deste dispositivo (slave)
 #define LED_PIN 2
+#define endereco 0x20 // armazena o endereço deste dispositivo (slave)
 int t;
 float tempValue = 25.5;
+
+/******************************** Objects ***********************************/
+A2a arduinoSlave;
 
 
 // set up the 'digital' feed
@@ -66,12 +69,12 @@ void setup() {
   Serial.println(io.statusText());
   digital->get();
 
-  //Conexão Serial com Arduin
-  //Serial.begin(115200);  // Configura a taxa de transferência em bits por segundo (baud rate) para transmissão serial.
-  Serial.println();
-  Wire.begin(myAddress); // inicia o dispositivo com o endereço definido anteriormente
-  Wire.onReceive(receiveEvent); //registra o evento de recebimento de mensagem
-  Serial.println("Software do ESP32");
+  // INICIA A COMUNICAÇÃO ENTRE ARDUINOS
+  arduinoSlave.begin(); 
+
+  // ENVIA O pinMode PARA O SLAVE
+  //arduinoSlave.pinWireMode(endereco, pinBotao, INPUT_PULLUP); 
+  //arduinoSlave.pinWireMode(endereco, pinLED, OUTPUT);
 
 }
 
@@ -88,6 +91,8 @@ void loop() {
   Vento_velocidade -> save(tempValue);
   Vento_direcao -> save("NE");
   Pluviometria -> save(tempValue);
+  
+  read_var_sensors_I2C;
   delay(20000);
 }
 
@@ -103,16 +108,11 @@ void handleMessage(AdafruitIO_Data *data) {
 }
 
 
-void receiveEvent(int howMany) {
-  String message = readString();
-  Serial.print(message); // imprime a mensagem recebida
+void read_var_sensors_I2C{
+  byte byte1 = arduinoSlave.varWireRead(endereco,0);
+  byte byte2 = arduinoSlave.varWireRead(endereco,2);
+  Serial.println(byte1);
+  Serial.println(byte2);
+}
 }
 
-String readString() {
-  String retorno;  
-  while (Wire.available()) { // Enquanto houver bytes disponíveis para leitura, ...
-    char c = Wire.read(); // recebe o byte como caractere
-    retorno += c;
-  }
-  return retorno;
-}
