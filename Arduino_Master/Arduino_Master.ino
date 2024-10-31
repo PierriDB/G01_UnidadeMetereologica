@@ -68,63 +68,59 @@ void setup() {
   as5600.begin(4);  //  set direction pin.
   as5600.setDirection(AS5600_CLOCK_WISE);  //  default, just be explicit.
 
-  //COMUNICAÇÃO I2C COM ESP32
-  ESP32.onReceive(receberDados);
-  ESP32.onRequest(enviarDados);
 }
-
 
 /****************************** Reading Loop ****************************/
 void loop() {
   //BME280
-  Serial.print("Temperature = ");
+  //Serial.print("Temperature = ");
   temperature=(bme.readTemperature());
-  Serial.print(temperature);
-  Serial.println("*C");
-  Serial.print("Pressure = ");
+  //Serial.print(temperature);
+  //Serial.println("*C");
+  //Serial.print("Pressure = ");
   pressure=bme.readPressure();
-  Serial.print(pressure);
-  Serial.println(" hPa");
-  Serial.print("Approx. Altitude = ");
+  //Serial.print(pressure);
+  //Serial.println(" hPa");
+  //Serial.print("Approx. Altitude = ");
   height=(bme.readAltitude(SEALEVELPRESSURE_HPA));
-  Serial.print(height);
-  Serial.println(" m");
-  Serial.print("Humidity = ");
+  //Serial.print(height);
+  //Serial.println(" m");
+  //Serial.print("Humidity = ");
   humidity=(bme.readHumidity());
-  Serial.print(humidity);
-  Serial.println(" %");
+  //Serial.print(humidity);
+  //Serial.println(" %");
 
   
   //Efeito Hall Pluviômetro
   value_pluv = digitalRead(hall_pluv);
-  Serial.print("Reed Pluviômetro: ");
-  Serial.println(value_pluv); 
+  //Serial.print("Reed Pluviômetro: ");
+  //Serial.println(value_pluv); 
   if(value_pluv!=old_value_pluv)  {  
    count_pluv++;
    old_value_pluv = value_pluv;         
-   Serial.print("Medida de chuva (contagem): ");
-   Serial.print(count_pluv);
-   Serial.println(" pulso");
-   Serial.print("Medida de chuva (calculado): ");
-   Serial.print(count_pluv * vol_click); 
-   Serial.println(" mm");
+   //Serial.print("Medida de chuva (contagem): ");
+   //Serial.print(count_pluv);
+   //Serial.println(" pulso");
+   //Serial.print("Medida de chuva (calculado): ");
+   //Serial.print(count_pluv * vol_click); 
+   //Serial.println(" mm");
   } 
   else{
    old_value_pluv = value_pluv;
-   Serial.print("Medida de chuva (calculado): ");
-   Serial.print(count_pluv * vol_click); 
-   Serial.println(" mm");
+   //Serial.print("Medida de chuva (calculado): ");
+   //Serial.print(count_pluv * vol_click); 
+  //Serial.println(" mm");
  }
 
   //Efeito Hall Anemometer
   windvelocity();
-  Serial.print("Counter: ");
-  Serial.println(counter);
+  //Serial.print("Counter: ");
+  //Serial.println(counter);
   RPMcalc();
   WindSpeed();
-  Serial.print("Wind speed: ");
-  Serial.print(windspeed);
-  Serial.println(" [m/s]");              
+  //Serial.print("Wind speed: ");
+  //Serial.print(windspeed);
+  //Serial.println(" [m/s]");              
   SpeedWind();
 
   //AS5600 - Encoder  
@@ -153,31 +149,27 @@ void loop() {
   else  {  
     wind_dir_text = "L";
   }
-  Serial.print("Angle = ");
-  Serial.println(wind_dir);
-  Serial.print("Direction = ");
-  Serial.println(wind_dir_text);
+  //Serial.print("Angle = ");
+  //Serial.println(wind_dir);
+  //Serial.print("Direction = ");
+  //Serial.println(wind_dir_text);
   Serial.println();
-  delay(5000);  
-
+ 
   //Transmissão via I2C
-  Wire.beginTransmission(slaveAddress); // transmite para o dispositivo slave
+  //Wire.beginTransmission(slaveAddress); // transmite para o dispositivo slave
+  String data = String(temperature) + "," + 
+                String(pressure) + "," + 
+                String(height) + "," + 
+                String(humidity) + "," + 
+                String(value_pluv) + "," + 
+                String(x) + "," + 
+                String(wind_dir) + "," + 
+                wind_dir_text;
 
-  // Cria e formata a mensagem para envio
-  String message = "O valor de x é ";
-  message.concat(x);
-  message.concat("\n");
+  Serial.println(data);  // Envia a string para o ESP32
+  x = x+1  //windspeed
+  delay(5000); // pausa de 5000 milissegundos
 
-  Wire.write(message.c_str());// envia a mensagem
-  Wire.endTransmission();  //para de transmitir
-
-  x++; // incremento da variável
-  delay(500); // pausa de 500 milissegundos
-
-
-  //WRITE VARIABLES WITH I2C
-  ESP32.varWireWrite(0,2222);
-  ESP32.varWireWrite(1,3333);
 }
 /*******************************************************************/
 /**************************** Functions ****************************/
