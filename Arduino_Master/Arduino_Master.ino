@@ -38,12 +38,13 @@ float windspeed=0;
 unsigned int RPM=0;
 unsigned int counter=0;
 const float pi=3.14159265;
-int radius=147;
+int radius=85;
 //Pluviometer
 int value_pluv = 0;
 int old_value_pluv = 0;
 int count_pluv = 0;
-const float vol_click = 0.25;
+float vol_click = 6173; //mm3 1L deu 162 batidas na gangorra --> 6.173 cm3
+float A_cil = 9503;   //mm2 sendo pi*55^2 --> 95.03 cm2
 //String wind_dir_text[1] = "arduino";
 String wind_dir_text= "Arduino Factory"; 
 
@@ -67,61 +68,39 @@ void setup() {
   Wire.begin();
   as5600.begin(4);  //  set direction pin.
   as5600.setDirection(AS5600_CLOCK_WISE);  //  default, just be explicit.
-
 }
 
 /****************************** Reading Loop ****************************/
 void loop() {
-  //BME280
-  //Serial.print("Temperature = ");
-  temperature=(bme.readTemperature());
-  //Serial.print(temperature);
-  //Serial.println("*C");
-  //Serial.print("Pressure = ");
-  pressure=bme.readPressure();
-  //Serial.print(pressure);
-  //Serial.println(" hPa");
-  //Serial.print("Approx. Altitude = ");
-  height=(bme.readAltitude(SEALEVELPRESSURE_HPA));
-  //Serial.print(height);
-  //Serial.println(" m");
-  //Serial.print("Humidity = ");
-  humidity=(bme.readHumidity());
-  //Serial.print(humidity);
-  //Serial.println(" %");
 
+  //BME280
+  temperature=(bme.readTemperature());
+  pressure=bme.readPressure();
+  height=(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  humidity=(bme.readHumidity());
   
   //Efeito Hall Pluviômetro
+  //Reseta pluviometria 1x ao dia
+  if(x>2280)  {  
+   x = 0;
+   count_pluv = 0;
+  } 
+
   value_pluv = digitalRead(hall_pluv);
-  //Serial.print("Reed Pluviômetro: ");
-  //Serial.println(value_pluv); 
   if(value_pluv!=old_value_pluv)  {  
    count_pluv++;
    old_value_pluv = value_pluv;         
-   //Serial.print("Medida de chuva (contagem): ");
-   //Serial.print(count_pluv);
-   //Serial.println(" pulso");
-   //Serial.print("Medida de chuva (calculado): ");
-   //Serial.print(count_pluv * vol_click); 
-   //Serial.println(" mm");
+
   } 
   else{
    old_value_pluv = value_pluv;
-   //Serial.print("Medida de chuva (calculado): ");
-   //Serial.print(count_pluv * vol_click); 
-  //Serial.println(" mm");
- }
+  }
 
   //Efeito Hall Anemometer
   windvelocity();
   //Serial.print("Counter: ");
   //Serial.println(counter);
-  RPMcalc();
-  WindSpeed();
-  //Serial.print("Wind speed: ");
-  //Serial.print(windspeed);
-  //Serial.println(" [m/s]");              
-  SpeedWind();
+  WindSpeed();         
 
   //AS5600 - Encoder  
   int wind_dir = int(as5600.rawAngle() * AS5600_RAW_TO_RADIANS*180/3.1415);
@@ -149,26 +128,20 @@ void loop() {
   else  {  
     wind_dir_text = "L";
   }
-  //Serial.print("Angle = ");
-  //Serial.println(wind_dir);
-  //Serial.print("Direction = ");
-  //Serial.println(wind_dir_text);
   Serial.println();
  
-  //Transmissão via I2C
-  //Wire.beginTransmission(slaveAddress); // transmite para o dispositivo slave
   String data = String(temperature) + "," + 
                 String(pressure) + "," + 
                 String(height) + "," + 
                 String(humidity) + "," + 
-                String(value_pluv) + "," + 
-                String(x) + "," + 
+                String(count_pluv*vol_click/A_cil) + "," + 
+                String(windspeed) + "," + 
                 String(wind_dir) + "," + 
                 wind_dir_text;
 
   Serial.println(data);  // Envia a string para o ESP32
-  x = x+1  //windspeed
-  delay(5000); // pausa de 5000 milissegundos
+  x = x+1;
+  delay(15000); // pausa de 15000 milissegundos
 
 }
 /*******************************************************************/
@@ -190,16 +163,8 @@ void addcount(){
   counter++;
 } 
 
-void RPMcalc(){
-  RPM= counter*(60/(period/1000));  // Calculate revolutions per minute (RPM)
-}
-
 void WindSpeed(){
-  windspeed = ((2 * pi * radius * RPM)/60);  // Calculate wind speed on m/s
-}
-
-void SpeedWind(){
-  speedwind = (((2 * pi * radius * RPM)/60))*3.6;  // Calculate wind speed on km/h
+  windspeed = ((2 * pi * radius * counter)/period)*3.6;  // Calculate wind speed on km/h
 }
 
 void resetmicros(){
@@ -219,13 +184,5 @@ if (!bme.begin(0x76)) {
   Serial.print(" ID of 0x60 represents a BME 280.\n");
   while (1);
   }
-}
-
-void receberDados(){
-  ESP32.receiveData(); 
-}
-
-void enviarDados(){
-  ESP32.sendData();
 }
 

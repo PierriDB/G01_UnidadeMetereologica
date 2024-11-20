@@ -21,8 +21,6 @@ int t;
 float tempValue = 25.5;
 
 /******************************** Objects ***********************************/
-//A2a arduinoSlave;
-
 // set up the 'digital' feed
 AdafruitIO_Feed *digital = io.feed("digital");
 AdafruitIO_Feed *Altitude = io.feed("Altitude");
