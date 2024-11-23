@@ -45,7 +45,8 @@ int old_value_pluv = 0;
 int count_pluv = 0;
 float vol_click = 6173; //mm3 1L deu 162 batidas na gangorra --> 6.173 cm3
 float A_cil = 9503;   //mm2 sendo pi*55^2 --> 95.03 cm2
-//String wind_dir_text[1] = "arduino";
+static unsigned long lastUpdateTime = 0; // Armazena o tempo da última atualização
+const unsigned long updateInterval = 30000; // Intervalo de tempo em milissegundos (20 segundos) + 10seg do resto
 String wind_dir_text= "Arduino Factory"; 
 
 /******************************* Setup ******************************/
@@ -73,76 +74,62 @@ void setup() {
 /****************************** Reading Loop ****************************/
 void loop() {
 
-  //BME280
-  temperature=(bme.readTemperature());
-  pressure=bme.readPressure();
-  height=(bme.readAltitude(SEALEVELPRESSURE_HPA));
-  humidity=(bme.readHumidity());
-  
-  //Efeito Hall Pluviômetro
-  //Reseta pluviometria 1x ao dia
-  if(x>2280)  {  
-   x = 0;
-   count_pluv = 0;
-  } 
+  // Verifica se o intervalo de tempo passou
+  if (millis() - lastUpdateTime >= updateInterval) {
+    lastUpdateTime = millis(); // Atualiza o tempo da última execução
 
-  value_pluv = digitalRead(hall_pluv);
-  if(value_pluv!=old_value_pluv)  {  
-   count_pluv++;
-   old_value_pluv = value_pluv;         
+    //BME280
+    temperature = bme.readTemperature();
+    pressure = bme.readPressure();
+    height = bme.readAltitude(SEALEVELPRESSURE_HPA);
+    humidity = bme.readHumidity();
 
-  } 
-  else{
-   old_value_pluv = value_pluv;
-  }
+    // Efeito Hall Pluviômetro
+    value_pluv = digitalRead(hall_pluv);
+    if (value_pluv != old_value_pluv) {  
+      count_pluv++;
+      old_value_pluv = value_pluv;         
+    } else {
+      old_value_pluv = value_pluv;
+    }
 
-  //Efeito Hall Anemometer
-  windvelocity();
-  //Serial.print("Counter: ");
-  //Serial.println(counter);
-  WindSpeed();         
+    // Efeito Hall Anemometer
+    windvelocity();
+    WindSpeed();
 
-  //AS5600 - Encoder  
-  int wind_dir = int(as5600.rawAngle() * AS5600_RAW_TO_RADIANS*180/3.1415);
-  if (wind_dir > 22.5 && wind_dir < 67.5) {
-    wind_dir_text = "NE";
-  }
-  else if (wind_dir > 67.5 && wind_dir < 112.5) {
-    wind_dir_text = "N";
-  }
-  else if (wind_dir > 112.5 && wind_dir < 157.5) {
-    wind_dir_text = "NO";
-  }
-  else if (wind_dir > 157.5 && wind_dir < 202.5) {
-    wind_dir_text = "O";
-  }
-  else if (wind_dir > 202.5 && wind_dir < 247.5) {
-    wind_dir_text = "SO";
-  }
-  else if (wind_dir > 247.5 && wind_dir < 292.5) {
-    wind_dir_text = "S";
-  }
-  else if (wind_dir > 292.5 && wind_dir < 337.5) {
-    wind_dir_text = "SE";
-  }
-  else  {  
-    wind_dir_text = "L";
-  }
-  Serial.println();
- 
-  String data = String(temperature) + "," + 
-                String(pressure) + "," + 
-                String(height) + "," + 
-                String(humidity) + "," + 
-                String(count_pluv*vol_click/A_cil) + "," + 
-                String(windspeed) + "," + 
-                String(wind_dir) + "," + 
-                wind_dir_text;
+    // AS5600 - Encoder  
+    int wind_dir = int(as5600.rawAngle() * AS5600_RAW_TO_RADIANS * 180 / 3.1415);
+    if (wind_dir > 22.5 && wind_dir < 67.5) {
+      wind_dir_text = "NE";
+    } else if (wind_dir > 67.5 && wind_dir < 112.5) {
+      wind_dir_text = "N";
+    } else if (wind_dir > 112.5 && wind_dir < 157.5) {
+      wind_dir_text = "NO";
+    } else if (wind_dir > 157.5 && wind_dir < 202.5) {
+      wind_dir_text = "O";
+    } else if (wind_dir > 202.5 && wind_dir < 247.5) {
+      wind_dir_text = "SO";
+    } else if (wind_dir > 247.5 && wind_dir < 292.5) {
+      wind_dir_text = "S";
+    } else if (wind_dir > 292.5 && wind_dir < 337.5) {
+      wind_dir_text = "SE";
+    } else {
+      wind_dir_text = "L";
+    }
 
-  Serial.println(data);  // Envia a string para o ESP32
-  x = x+1;
-  delay(15000); // pausa de 15000 milissegundos
+    // Prepara e envia os dados
+    String data = String(temperature) + "," + 
+                  String(pressure) + "," + 
+                  String(height) + "," + 
+                  String(humidity) + "," + 
+                  String(count_pluv * vol_click / A_cil) + "," + 
+                  String(windspeed) + "," + 
+                  String(wind_dir) + "," + 
+                  wind_dir_text;
 
+    Serial.println(data); // Envia a string para o ESP32
+    x = x + 1;
+  }
 }
 /*******************************************************************/
 /**************************** Functions ****************************/
