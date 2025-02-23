@@ -11,7 +11,7 @@
 
 /******************* Definitions *******************/
 //Efeito Hall
-#define hall_pluv 2 // PLUVIOMETRO
+#define hall_pluv 5 // PLUVIOMETRO
 #define hall_anem 3 // VELOCIDADE VENTO
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define endereco 0x20
