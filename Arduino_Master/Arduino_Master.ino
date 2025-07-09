@@ -3,7 +3,7 @@
 /******************* Libraries ******************/
 //BME280
 #include <Wire.h>
-#include <A2a.h>
+//#include <A2a.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include "AS5600.h"
@@ -19,7 +19,7 @@
 
 //AS5600
 AS5600 as5600;   //  use default Wire
-A2a ESP32;
+//A2a ESP32;
 Adafruit_BME280 bme;
 
 /******************* Variables *******************/
@@ -52,7 +52,7 @@ String wind_dir_text= "Arduino Factory";
 /******************************* Setup ******************************/
 void setup() {
   Wire.begin(); // inicia a comunicação I2C
-  ESP32.begin(endereco);
+  //ESP32.begin(endereco);
 
   //resetmicros();
   Serial.begin(9600);
@@ -172,4 +172,3 @@ if (!bme.begin(0x76)) {
   while (1);
   }
 }
-
