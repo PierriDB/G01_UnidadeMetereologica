@@ -1,14 +1,14 @@
 /************************ Adafruit IO Config *******************************/
 
 #define IO_USERNAME "PierriDB"
-#define IO_KEY "aio_YWMn80GEuLUmw8Bpnw6zKebcSz53"
+#define IO_KEY "aio_jKNF34GKMSFQIPsECRpj4kBGEuZx"
 
 /******************************* WIFI **************************************/
 
-#define WIFI_SSID "APTO22_5G-EXT"
-#define WIFI_PASS "999953781"
-//#define WIFI_SSID "DELLABRUNA"
-//#define WIFI_PASS "dellabruna2022"
+//#define WIFI_SSID "APTO22_5G-EXT"
+//#define WIFI_PASS "999953781"
+#define WIFI_SSID "DELLABRUNA"
+#define WIFI_PASS "dellabruna2022"
 
 #include "AdafruitIO_WiFi.h"
 
