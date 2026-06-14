@@ -1,7 +1,7 @@
 /************************ Adafruit IO Config *******************************/
 
 #define IO_USERNAME "PierriDB"
-#define IO_KEY "aio_jKNF34GKMSFQIPsECRpj4kBGEuZx"
+#define IO_KEY "COLOCAR A CHAVE AQUI"
 
 /******************************* WIFI **************************************/
 

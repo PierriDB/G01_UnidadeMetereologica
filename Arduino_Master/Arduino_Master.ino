@@ -30,7 +30,7 @@ int radius = 85;
 String wind_dir_text = "L";
 
 void setup() {
-  Serial.begin(115200); // 🔥 IMPORTANTE
+  Serial.begin(9600); // 🔥 IMPORTANTE
 
   Wire.begin();
 

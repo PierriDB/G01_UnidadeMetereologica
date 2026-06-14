@@ -17,14 +17,23 @@ AdafruitIO_Feed *Pluviometria_soma = io.feed("Pluviometria_soma");
 AdafruitIO_Feed *Vento_velocidade = io.feed("Vento_velocidade");
 AdafruitIO_Feed *Vento_direcao = io.feed("Vento_direcao");
 
-float vol_click = 6173;
-float A_cil = 9503;
+String buffer = "";
 
 void setup() {
+
   pinMode(LED_PIN, OUTPUT);
+
   Serial.begin(115200);
 
-  Serial2.begin(115200, SERIAL_8N1, RXp2, TXp2); // 🔥 IGUAL ARDUINO
+  // UART estável primeiro
+  Serial2.begin(9600, SERIAL_8N1, RXp2, TXp2);
+
+  delay(2000);
+
+  // limpa lixo inicial
+  while (Serial2.available()) Serial2.read();
+
+  Serial.println("ESP iniciado");
 
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);
@@ -33,6 +42,7 @@ void setup() {
 }
 
 void loop() {
+
   io.run();
 
   if (io.status() != AIO_CONNECTED) {
@@ -42,27 +52,45 @@ void loop() {
     digitalWrite(LED_PIN, HIGH);
   }
 
-  if (Serial2.available()) {
+  // ===============================
+  // LEITURA UART ROBUSTA
+  // ===============================
+  while (Serial2.available()) {
 
-    String line = Serial2.readStringUntil('\n');
+    char c = Serial2.read();
 
-    line.replace("\r", "");
-    line.trim();
+    // fim de linha
+    if (c == '\n') {
 
-    Serial.println(line);
+      buffer.trim();
 
-    if (line.length() < 10) return;
+      // FILTROS IMPORTANTES
+      if (buffer.length() > 30 &&
+          buffer.length() < 120 &&
+          buffer.indexOf(',') != -1) {
 
-    processar(line);
+        Serial.println(buffer);
+        processar(buffer);
+      }
+
+      buffer = "";
+    }
+
+    // só caracteres válidos
+    else if (c >= 32 && c <= 126) {
+      buffer += c;
+    }
   }
 }
 
 void conectarIO() {
+
   Serial.print("Conectando IO");
 
   io.connect();
 
   int t = 0;
+
   while (io.status() < AIO_CONNECTED && t < 40) {
     Serial.print(".");
     delay(500);
@@ -78,8 +106,11 @@ void conectarIO() {
 
 void processar(String s) {
 
-  char buf[120];
-  s.toCharArray(buf, 120);
+  // proteção extra contra lixo
+  if (s.indexOf(',') == -1) return;
+
+  char buf[128];
+  s.toCharArray(buf, 128);
 
   char* tks[8];
   int i = 0;
