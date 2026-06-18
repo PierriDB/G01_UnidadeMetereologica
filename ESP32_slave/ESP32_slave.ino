@@ -1,3 +1,5 @@
+
+
 #include "config.h"
 #include <WiFi.h>
 
@@ -147,6 +149,10 @@ void processar(String s) {
   Vento_direcao->save(vento_d);
 
   Serial.println("OK enviado");
+  digitalWrite(LED_PIN, LOW);
+  delay(100);
+  digitalWrite(LED_PIN, HIGH);
+
 }
 
 void handleMessage(AdafruitIO_Data *data) {
